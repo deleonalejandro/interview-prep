@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Scanner;
 
 @Slf4j
 public class StackSolution {
@@ -17,6 +18,7 @@ public class StackSolution {
 
     public static void main(String[] args) {
         log.info("Is it balanced: {}", isBalanced("{[()]}"));
+        queueUsing2Stacks();
     }
 
     /**
@@ -38,5 +40,29 @@ public class StackSolution {
             }
         }
         return bracketStack.isEmpty();
+    }
+
+    /**
+     * Queue using Two Stacks <a href="https://www.hackerrank.com/challenges/queue-using-two-stacks/problem">HackerRank Link</a>
+     * The add() and remove() methods are very useful for this exercise. They add to the tail and remove from the head.
+     */
+    public static void queueUsing2Stacks() {
+        Scanner scanner = new Scanner(System.in);
+        int numQueries = scanner.nextInt();
+
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        for (int i = 0; i < numQueries; i++) {
+            int operation = scanner.nextInt();
+            switch (operation) {
+                case 1 -> {
+                    int value = scanner.nextInt();
+                    queue.add(value);
+                }
+                case 2 -> queue.remove();
+                case 3 -> log.info(String.valueOf(queue.peek()));
+                default -> throw new UnsupportedOperationException();
+            }
+        }
+        scanner.close();
     }
 }
