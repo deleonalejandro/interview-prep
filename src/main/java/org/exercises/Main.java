@@ -1,11 +1,13 @@
 package org.exercises;
 
-import org.exercises.arrays.ArraySolution;
-
 public class Main {
 
+    /**
+     * This is the playground
+     * @param args main arguments
+     */
     public static void main(String[] args) {
-        ArraySolution.main(new String[0]);
+        // Code to play with
     }
 
 }
