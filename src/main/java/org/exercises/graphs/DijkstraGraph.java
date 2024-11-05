@@ -1,93 +1,101 @@
 package org.exercises.graphs;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class DijkstraGraph {
 
     public static void main(String[] args) {
-        Graph g = new Graph(5);
-        g.addEdge(1, 2, 24);
-        g.addEdge(1, 4, 20);
-        g.addEdge(3, 1, 3);
-        g.addEdge(4, 3, 12);
+        Graph g = new Graph(9);
 
-        g.shortestPath(1, 4);
+        // Adding edges to create the graph
+        g.addEdge(0, 1, 4);
+        g.addEdge(0, 7, 8);
+        g.addEdge(1, 2, 8);
+        g.addEdge(1, 7, 11);
+        g.addEdge(2, 3, 7);
+        g.addEdge(2, 8, 2);
+        g.addEdge(2, 5, 4);
+        g.addEdge(3, 4, 9);
+        g.addEdge(3, 5, 14);
+        g.addEdge(4, 5, 10);
+        g.addEdge(5, 6, 2);
+        g.addEdge(6, 7, 1);
+        g.addEdge(6, 8, 6);
+        g.addEdge(7, 8, 7);
+
+        g.displayAdjList();
+        g.shortestPath(0, 4);
     }
 
     static class Graph {
 
         private final int vertex;
-        private final List<VertexWeight>[] adjecencyList;
+        private final List<List<VertexWeight>> adjecencyList;
 
         public Graph(int vertex) {
             this.vertex = vertex;
-            this.adjecencyList = new ArrayList[vertex];
+            this.adjecencyList = new ArrayList<>(vertex);
             for (int i = 0; i < vertex; i++) {
-                this.adjecencyList[i] = new ArrayList<>();
+                this.adjecencyList.add(new ArrayList<>());
             }
         }
 
         public void addEdge(int u, int v, int weight) {
-            adjecencyList[u - 1].add(VertexWeight.of(v, weight));
-            adjecencyList[v - 1].add(VertexWeight.of(u, weight));
+            // Undirected graph (u and v connected by a weighted edge)
+            adjecencyList.get(u).add(VertexWeight.of(v, weight));
+            adjecencyList.get(v).add(VertexWeight.of(u, weight));
         }
 
         public void shortestPath(int source) {
             Result result = executeDijkstra(source);
-            int[] dist = result.dist();
+            List<Integer> dist = result.dist();
             System.out.println("Shortest distance from source: " + source);
             for (int i = 0; i < this.vertex; i++) {
-                System.out.println((i + 1) + "\t" + dist[i]);
+                System.out.println(i + "\t" + dist.get(i));
             }
         }
 
         public void shortestPath(int source, int target) {
             Result result = executeDijkstra(source);
-            int[] prev = result.prev();
+            List<Integer> prev = result.prev();
+            List<Integer> dist = result.dist();
 
             System.out.println("Shortest path from source: " + source + " to target: " + target);
-            System.out.println("Distance: " + result.dist()[target - 1]);
+            System.out.println("Distance: " + dist.get(target));
 
-            int parent = prev[target - 1];
-            int normSource = source - 1;
-
+            int parent = prev.get(target);
             if (parent == -1) {
                 System.out.println("Path: No path exists");
             } else {
                 System.out.print(target);
-                while (parent != normSource) {
-                    System.out.print("->" + parent);
-                    parent = prev[parent];
+                while (parent != source) {
+                    System.out.print(parent);
+                    parent = prev.get(parent);
                 }
-                System.out.print("->" + source);
+                System.out.print(source);
             }
         }
 
         private Result executeDijkstra(int source) {
             PriorityQueue<VertexWeight> pq = new PriorityQueue<>();
-            int[] dist = new int[this.vertex];
-            int[] prev = new int[this.vertex];
-            Arrays.fill(dist, Integer.MAX_VALUE);
-            Arrays.fill(prev, -1);
+            List<Integer> dist = new ArrayList<>(Collections.nCopies(this.vertex, Integer.MAX_VALUE));
+            List<Integer> prev = new ArrayList<>(Collections.nCopies(this.vertex, -1));
 
-            dist[source - 1] = 0;
+            dist.set(source, 0);
             pq.add(VertexWeight.of(source, 0));
 
             while (!pq.isEmpty()) {
                 int u = pq.poll().vertex;
 
-                for (VertexWeight neighbor : this.adjecencyList[u - 1]) {
+                for (VertexWeight neighbor : adjecencyList.get(u)) {
                     int v = neighbor.vertex;
-                    int weight = neighbor.weight;
+                    int weight = neighbor.weight; // If we had negative weights, we will be running on cyclic path.
 
                     // Relaxation
-                    if (dist[v - 1] > dist[u - 1] + weight) {
-                        dist[v - 1] = dist[u - 1] + weight;
-                        prev[v - 1] = u - 1;
-                        pq.add(neighbor);
+                    if (dist.get(v) > dist.get(u) + weight) {
+                        dist.set(v, dist.get(u) + weight);
+                        prev.set(v, u);
+                        pq.add(VertexWeight.of(v, dist.get(v)));
                     }
                 }
             }
@@ -95,12 +103,23 @@ public class DijkstraGraph {
             return new Result(dist, prev);
         }
 
-        private record Result(int[] dist, int[] prev) {
+        private record Result(List<Integer> dist, List<Integer> prev) {
+        }
+
+        // Method to display the adjacency list
+        public void displayAdjList() {
+            for (int i = 0; i < this.adjecencyList.size(); i++) {
+                System.out.print(i + ": "); // Print the vertex
+                for (VertexWeight j : this.adjecencyList.get(i)) {
+                    System.out.print(j + " "); // Print its adjacent
+                }
+                System.out.println();
+            }
         }
 
         @Override
         public String toString() {
-            return Arrays.toString(adjecencyList);
+            return this.adjecencyList.toString();
         }
 
         static class VertexWeight implements Comparable<VertexWeight> {
